@@ -1,22 +1,97 @@
 import React from 'react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import UserContext from './UserContext.jsx'
 import axios from 'axios';
 const UsersStates = (props) => {
 
-    const [localenv, setlocalEnv] = useState({ HOST: 'https://3010-vijay982816-backendcurd-6k5lcxb1x4m.ws-us69.gitpod.io' })
+    const [localenv, setlocalEnv] = useState({ HOST: 'https://3010-vijay982816-backendcurd-6k5lcxb1x4m.ws-us67.gitpod.io' })
 
-    const [users, setUsers] = useState([])
+    const [loggedInUser, setloggedInUser] = useState({})
+    const [bills, setBills] = useState([])
 
-    // Geting all user
-    const getUsers = async () => {
-        // API Call 
-        const response = await fetch(`${localenv.HOST}/api/users/getUsers`);
 
-        const myjson = await response.json()
-        setUsers(myjson)
+
+
+
+    // checking user is login or not
+
+    const isLoggedIn = async () => {
+
+
+        console.log('is loggedin start');
+
+        const authtoken = await localStorage.getItem('authtoken');
+        const username = await localStorage.getItem('username');
+        const role = await localStorage.getItem('role')
+
+        console.log(authtoken, username, role)
+
+
+        if (authtoken && username && role) {
+
+
+            console.log('in loggedin true');
+            setloggedInUser({
+                islogin: true,
+                username: username,
+                role: role
+            })
+            console.log(loggedInUser)
+
+
+        } else {
+            console.log('in loggedin false');
+            setloggedInUser({
+                islogin: false,
+                username: username,
+                role: role
+            })
+            console.log(loggedInUser)
+
+        }
+
+
+
+
+
+
+
+        console.log('is loggedin end');
+    }
+
+
+    const logout = async () => {
+
+        try {
+
+            console.log('logout start')
+
+
+            await localStorage.removeItem("authtoken");
+            await localStorage.removeItem("username");
+            await localStorage.removeItem("role")
+
+
+
+
+            setloggedInUser({
+                islogin: false,
+                role: "",
+                username: ''
+
+            })
+
+
+
+
+
+            console.log('logout end', loggedInUser)
+        } catch (error) {
+            console.log(error)
+        }
 
     }
+
 
 
     //one user find 
@@ -141,9 +216,9 @@ const UsersStates = (props) => {
 
                 .then(response => {
 
-                    const { success, authtoken, username } = response.data
+                    const { success, authtoken, username, role } = response.data
                     return {
-                        success, authtoken, username
+                        success, authtoken, username, role
                     };
                 })
 
@@ -186,9 +261,9 @@ const UsersStates = (props) => {
 
                     console.log(response)
 
-                    const { success, authtoken, username } = response.data
+                    const { success, authtoken, username, role } = response.data
                     return {
-                        success, authtoken, username
+                        success, authtoken, username, role
                     };
                 })
 
@@ -221,10 +296,147 @@ const UsersStates = (props) => {
     }
 
 
-    //update user 
+
+    // Geting all Bills
+    const getBills = async () => {
 
 
-    const updateUser = async (id, name, age, phone, uploadProfileImage) => {
+        console.log('get bills is working ')
+
+
+        if (loggedInUser.islogin){
+
+
+            const Allbills = await fetch(`${localenv.HOST}/bill/getallbills`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "authtoken": localStorage.getItem('authtoken')
+                }
+            })
+                .then(async response => {
+
+                    const myresinjson = await response.json()
+                    setBills(myresinjson)
+                    return myresinjson;
+                })
+
+                .catch(async (error) => {
+
+
+                    return error;
+
+
+                })
+
+
+            // console.log(Allbills)
+
+
+            return Allbills
+
+        }
+
+
+      
+
+
+
+
+
+
+
+
+
+
+
+    }
+
+
+    //add bill /Order  
+    const addBill = async (bill) => {
+
+
+
+
+        const url = `${localenv.HOST}/bill/generatebill`
+
+
+        const config = {
+
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+            }
+
+
+        }
+
+
+
+        const addedBill = await axios.post(url, bill, config)
+
+            .then(async (done) => {
+
+                const { data, message } = await done.data
+
+
+
+
+                console.log('added bill is ', data)
+                console.log(typeof data)
+
+                // console.log('old bills ', bills)
+                const newbills = await bills.concat(data)
+
+                console.log("new bills ", newbills);
+
+                // setBills(newbills)
+                // console.log('new bills ', bills)
+
+                return {
+                    success: true,
+                    data: data,
+                    message
+                };
+
+
+
+            })
+            .catch(async (error) => {
+
+                const { data } = await error.response
+
+                return {
+                    message: data.error,
+                    success: false
+                }
+
+                // return error.response.data
+
+            })
+
+        console.log('addedbill is ', addedBill)
+
+
+
+
+        return addedBill
+
+
+
+
+
+
+
+
+
+
+    }
+
+
+    // updating bill 
+
+    const updateBill = async (id, name, age, phone, uploadProfileImage) => {
 
 
 
@@ -289,13 +501,18 @@ const UsersStates = (props) => {
         return response.data.message
     }
 
+    // useEffect(() => {
+
+    //     isLoggedIn()
+
+    // }, [])
 
 
 
     return (
 
 
-        <UserContext.Provider value={{ registerUser, loginuser, updateUser, deleteUser, users, oneUser, getUsers, }}>
+        <UserContext.Provider value={{ registerUser, loginuser, getBills, isLoggedIn, deleteUser, loggedInUser, logout, oneUser, bills, addBill }}>
 
 
 

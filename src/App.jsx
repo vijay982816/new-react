@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css'
 import { ToastContainer } from "react-toastify";
 import Login from './components/Login.jsx';
 import Register from './components/Register.jsx';
+import AddBill from './components/AddBill.jsx';
 
 
 
@@ -37,8 +38,11 @@ export default function App() {
         <Route path="/login" element={<Login />} />
 
         <Route path="/register" element={<Register />} />
+        <Route path="/order" element={<AddBill />} />
 
-{/* 
+
+
+        {/* 
         <  Route path="/updateuser/:id" element={<UpdateUser />} />
 
         <  Route path="/view/:id" element={<ViewProfile />} /> */}

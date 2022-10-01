@@ -4,7 +4,7 @@ import UserContext from '../context/UserContext.jsx'
 import { toast } from 'react-toastify';
 
 
-const AddUser = () => {
+const Login = () => {
 
 
     const navigate = useNavigate()
@@ -34,7 +34,7 @@ const AddUser = () => {
     }
 
 
-    const { loginuser } = useContext(UserContext)
+    const { loginuser, isLoggedIn } = useContext(UserContext)
 
 
     const submitForm = async () => {
@@ -69,22 +69,14 @@ const AddUser = () => {
 
 
 
-
-                console.log(response)
-
-                // setUser({
-                //     email: "",
-                //     password: "",
-                //     role: "",
-
-                // })
-
-
-
                 if (response.success == true) {
 
-                    localStorage.setItem('authtoken', response.authtoken);
-                    localStorage.setItem('username', response.username);
+                    await localStorage.setItem('authtoken', response.authtoken);
+                    await localStorage.setItem('username', response.username);
+                    await localStorage.setItem('role', response.role);
+
+
+                    await isLoggedIn()
 
                     toast.success("Logged in successfully", {
                         position: "top-center",
@@ -95,6 +87,15 @@ const AddUser = () => {
                         draggable: true,
                         progress: undefined,
                     });
+
+                    setUser({
+                        email: "",
+                        password: "",
+                        role: "",
+
+                    })
+
+
 
                     setTimeout(() => {
                         navigate('/')
@@ -128,7 +129,7 @@ const AddUser = () => {
 
         } else {
 
-
+            await isLoggedIn()
             setAlert({ message: 'Please Fill All Fields', display: true })
 
 
@@ -306,4 +307,4 @@ const AddUser = () => {
     )
 }
 
-export default AddUser
+export default Login
